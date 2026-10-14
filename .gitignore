@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+
+# Production Builds
+dist/
+build/
+.output/
+
+# Environment Variables
+.env
+.env.local
+*.local
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test & Coverage
+coverage/
+.pytest_cache/
+.coverage
