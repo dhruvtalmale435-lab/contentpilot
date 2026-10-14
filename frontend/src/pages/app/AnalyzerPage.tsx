@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Zap,
   CheckCircle2,
@@ -14,7 +15,9 @@ import {
   Save,
   Info,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Filter,
+  CheckCheck
 } from 'lucide-react';
 import { ScoreGauge } from '../../components/ui/ScoreGauge';
 import { storage } from '../../services/storage';
@@ -47,8 +50,8 @@ export const AnalyzerPage: React.FC = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalyzerResult | null>(null);
   const [expandedDimension, setExpandedDimension] = useState<string | null>(null);
-  const [copiedDraft, setCopiedDraft] = useState(false);
   const [appliedImproved, setAppliedImproved] = useState(false);
+  const [dimensionFilter, setDimensionFilter] = useState<'all' | 'high' | 'needs_work'>('all');
 
   // Auto-run analysis when landing with an item
   useEffect(() => {
@@ -68,7 +71,6 @@ export const AnalyzerPage: React.FC = () => {
       });
       setAnalysisResult(res);
 
-      // If tied to an existing item, persist readiness score
       if (existingItem) {
         storage.saveContentItem({
           ...existingItem,
@@ -103,6 +105,12 @@ export const AnalyzerPage: React.FC = () => {
     navigate('/app/library');
   };
 
+  const filteredDimensions = analysisResult?.dimensionScores.filter(dim => {
+    if (dimensionFilter === 'high') return dim.score >= 80;
+    if (dimensionFilter === 'needs_work') return dim.score < 80;
+    return true;
+  }) || [];
+
   return (
     <div className="space-y-8">
       {/* Page Header */}
@@ -112,7 +120,7 @@ export const AnalyzerPage: React.FC = () => {
             <span className="text-xs font-mono font-bold text-cobalt uppercase tracking-wider">
               Pre-Publish Diagnostic Engine
             </span>
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-chartreuse text-ink-navy uppercase">
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-chartreuse text-ink-navy uppercase shadow-2xs">
               Key Differentiator
             </span>
           </div>
@@ -124,20 +132,22 @@ export const AnalyzerPage: React.FC = () => {
           </p>
         </div>
 
-        <button
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={runAudit}
           disabled={isAnalyzing || !textContent.trim()}
-          className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-cobalt hover:bg-cobalt-hover text-white font-bold text-xs shadow-soft transition-all"
+          className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-cobalt hover:bg-cobalt-hover text-white font-bold text-xs shadow-cobalt-glow transition-all cursor-pointer"
         >
           <Zap className="w-4 h-4 fill-white" />
-          {isAnalyzing ? 'Scoring 10 Dimensions...' : 'Run Packaging Critique'}
-        </button>
+          <span>{isAnalyzing ? 'Scoring 10 Dimensions...' : 'Run Packaging Critique'}</span>
+        </motion.button>
       </div>
 
       {/* Main Grid: Input Workspace on Left (5 cols) & Full Diagnostic Report on Right (7 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Content to Analyze */}
-        <div className="lg:col-span-5 bg-white border border-stone-border rounded-panel p-6 shadow-soft space-y-4">
+        <div className="lg:col-span-5 bg-white border border-stone-border rounded-panel p-6 shadow-soft space-y-4 card-tactile">
           <div className="flex items-center justify-between pb-3 border-b border-stone-divider">
             <h3 className="font-bold text-sm text-ink-navy">Asset Content & Context</h3>
             <span className="text-[10px] font-mono text-ink-faint capitalize">{platform}</span>
@@ -204,22 +214,26 @@ export const AnalyzerPage: React.FC = () => {
 
           <div className="pt-2 flex items-center justify-between gap-3">
             <button
+              type="button"
               onClick={runAudit}
               disabled={isAnalyzing}
-              className="flex-1 py-2 rounded-lg bg-stone-hover hover:bg-stone-border text-ink-navy text-xs font-bold transition-colors"
+              className="flex-1 py-2 rounded-lg bg-surface-warm hover:bg-stone-hover border border-stone-border text-ink-navy text-xs font-bold transition-colors cursor-pointer"
             >
               Re-score Draft
             </button>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="button"
               onClick={handleSaveUpdatedContent}
               disabled={!analysisResult}
-              className="px-4 py-2 rounded-lg bg-ink-navy text-white text-xs font-bold hover:bg-cobalt transition-colors"
+              className="px-4 py-2 rounded-lg bg-ink-navy text-white text-xs font-bold hover:bg-cobalt transition-colors shadow-soft cursor-pointer"
             >
               Save to Library
-            </button>
+            </motion.button>
           </div>
 
-          <div className="p-3 bg-surface-subtle border border-stone-border rounded text-[11px] text-ink-muted leading-relaxed flex items-start gap-2">
+          <div className="p-3 bg-surface-warm border border-stone-border rounded text-[11px] text-ink-muted leading-relaxed flex items-start gap-2">
             <Info className="w-4 h-4 text-cobalt flex-shrink-0 mt-0.5" />
             <span>
               <strong>Editorial Estimate:</strong> Scores are based on creator psychology heuristics, retention dropoff points, and clarity criteria. We do not claim an unverified "probability of virality."
@@ -230,13 +244,18 @@ export const AnalyzerPage: React.FC = () => {
         {/* Right Column: Diagnostic Assessment & Suggested Revisions */}
         <div className="lg:col-span-7 space-y-6">
           {!analysisResult ? (
-            <div className="bg-white border-2 border-dashed border-stone-border rounded-panel p-12 text-center text-xs text-ink-muted">
+            <div className="bg-white border-2 border-dashed border-stone-border rounded-panel p-12 text-center text-xs text-ink-muted card-tactile">
               Click "Run Packaging Critique" to evaluate your content across all 10 dimensions.
             </div>
           ) : (
-            <div className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35 }}
+              className="space-y-6"
+            >
               {/* Score Overview Card */}
-              <div className="bg-white border border-stone-border rounded-panel p-6 shadow-soft flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              <div className="bg-white border border-stone-border rounded-panel p-6 shadow-soft flex flex-col sm:flex-row sm:items-center justify-between gap-6 card-tactile">
                 <div className="space-y-2">
                   <span className="text-[10px] font-mono text-ink-faint uppercase font-bold tracking-wider">
                     Content Readiness Assessment
@@ -256,7 +275,7 @@ export const AnalyzerPage: React.FC = () => {
 
               {/* Strengths & Weaknesses Split */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-white border border-stone-border rounded-panel p-5 shadow-soft space-y-2.5">
+                <div className="bg-white border border-stone-border rounded-panel p-5 shadow-soft space-y-2.5 card-tactile">
                   <span className="text-[10px] font-mono text-teal-success uppercase font-bold tracking-wider flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Observed Strengths
                   </span>
@@ -270,7 +289,7 @@ export const AnalyzerPage: React.FC = () => {
                   </ul>
                 </div>
 
-                <div className="bg-white border border-stone-border rounded-panel p-5 shadow-soft space-y-2.5">
+                <div className="bg-white border border-stone-border rounded-panel p-5 shadow-soft space-y-2.5 card-tactile">
                   <span className="text-[10px] font-mono text-amber-warning uppercase font-bold tracking-wider flex items-center gap-1.5">
                     <AlertTriangle className="w-3.5 h-3.5" /> Improvement Opportunities
                   </span>
@@ -285,17 +304,41 @@ export const AnalyzerPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* 10 Separate Dimensions Accordion / List */}
-              <div className="bg-white border border-stone-border rounded-panel p-6 shadow-soft space-y-4">
-                <div className="flex items-center justify-between pb-2 border-b border-stone-divider">
-                  <h4 className="font-bold text-xs uppercase tracking-wider text-ink-navy">
-                    10-Dimension Breakdown
-                  </h4>
-                  <span className="text-[10px] text-ink-faint font-mono">Weighted Packaging Heuristic</span>
+              {/* 10 Separate Dimensions Breakdown with Filter Chips */}
+              <div className="bg-white border border-stone-border rounded-panel p-6 shadow-soft space-y-4 card-tactile">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-stone-divider">
+                  <div>
+                    <h4 className="font-bold text-xs uppercase tracking-wider text-ink-navy">
+                      10-Dimension Breakdown
+                    </h4>
+                    <span className="text-[10px] text-ink-faint font-mono">Weighted Packaging Heuristic</span>
+                  </div>
+
+                  {/* Filter tabs */}
+                  <div className="flex items-center gap-1 bg-surface-warm p-1 rounded-lg border border-stone-border">
+                    <button
+                      onClick={() => setDimensionFilter('all')}
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold transition-colors ${dimensionFilter === 'all' ? 'bg-white text-ink-navy shadow-2xs' : 'text-ink-muted'}`}
+                    >
+                      All (10)
+                    </button>
+                    <button
+                      onClick={() => setDimensionFilter('high')}
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold transition-colors ${dimensionFilter === 'high' ? 'bg-white text-teal-success shadow-2xs' : 'text-ink-muted'}`}
+                    >
+                      Strong (≥80)
+                    </button>
+                    <button
+                      onClick={() => setDimensionFilter('needs_work')}
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold transition-colors ${dimensionFilter === 'needs_work' ? 'bg-white text-amber-warning shadow-2xs' : 'text-ink-muted'}`}
+                    >
+                      Improve (&lt;80)
+                    </button>
+                  </div>
                 </div>
 
                 <div className="divide-y divide-stone-divider">
-                  {analysisResult.dimensionScores.map((dim) => {
+                  {filteredDimensions.map((dim) => {
                     const isExpanded = expandedDimension === dim.key;
                     return (
                       <div key={dim.key} className="py-3">
@@ -307,33 +350,45 @@ export const AnalyzerPage: React.FC = () => {
                             <span className="text-xs font-semibold text-ink-navy group-hover:text-cobalt transition-colors">
                               {dim.name}
                             </span>
-                            <span className="text-[10px] font-bold text-ink-muted bg-stone-hover px-1.5 py-0.2 rounded">
+                            <span className="text-[10px] font-bold text-ink-muted bg-surface-warm px-1.5 py-0.2 rounded border border-stone-border">
                               {dim.rating}
                             </span>
                           </div>
 
                           <div className="flex items-center gap-3">
-                            <span className={`text-xs font-extrabold ${dim.score >= 80 ? 'text-teal-success' : dim.score >= 65 ? 'text-cobalt' : 'text-amber-warning'}`}>
+                            <span className={`text-xs font-extrabold font-mono ${dim.score >= 80 ? 'text-teal-success' : dim.score >= 65 ? 'text-cobalt' : 'text-amber-warning'}`}>
                               {dim.score}/100
                             </span>
                             {isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-ink-faint" /> : <ChevronDown className="w-3.5 h-3.5 text-ink-faint" />}
                           </div>
                         </div>
 
-                        {/* Progress meter */}
+                        {/* Progress meter with animated bar */}
                         <div className="w-full h-1.5 bg-stone-hover rounded-full overflow-hidden mt-2">
-                          <div
-                            className={`h-full rounded-full transition-all duration-500 ${dim.score >= 80 ? 'bg-teal-success' : dim.score >= 65 ? 'bg-cobalt' : 'bg-amber-warning'}`}
-                            style={{ width: `${dim.score}%` }}
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${dim.score}%` }}
+                            transition={{ duration: 0.6, ease: 'easeOut' }}
+                            className={`h-full rounded-full ${dim.score >= 80 ? 'bg-teal-success' : dim.score >= 65 ? 'bg-cobalt' : 'bg-amber-warning'}`}
                           />
                         </div>
 
                         {/* Feedback text */}
-                        {isExpanded && (
-                          <p className="text-xs text-ink-muted mt-2 pl-1 leading-relaxed bg-surface-subtle p-2.5 rounded-lg border border-stone-border">
-                            {dim.feedback}
-                          </p>
-                        )}
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <p className="text-xs text-ink-muted mt-2 pl-1 leading-relaxed bg-surface-warm p-3 rounded-lg border border-stone-border">
+                                {dim.feedback}
+                              </p>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     );
                   })}
@@ -342,21 +397,21 @@ export const AnalyzerPage: React.FC = () => {
 
               {/* Before-and-After Concrete Demonstrations */}
               {analysisResult.beforeAfterExamples.length > 0 && (
-                <div className="bg-white border border-stone-border rounded-panel p-6 shadow-soft space-y-4">
+                <div className="bg-white border border-stone-border rounded-panel p-6 shadow-soft space-y-4 card-tactile">
                   <h4 className="font-bold text-xs uppercase tracking-wider text-ink-navy">
                     Before & After Revisions
                   </h4>
 
                   <div className="space-y-3">
                     {analysisResult.beforeAfterExamples.map((ex, idx) => (
-                      <div key={idx} className="bg-background rounded-lg p-3.5 border border-stone-border text-xs space-y-2">
+                      <div key={idx} className="bg-surface-warm rounded-lg p-4 border border-stone-border text-xs space-y-2">
                         <span className="font-bold text-ink-navy block">{ex.aspect}</span>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div className="p-2.5 rounded bg-white border border-red-200">
+                          <div className="p-3 rounded bg-white border border-red-200 shadow-2xs">
                             <span className="text-[9px] font-bold text-red-error uppercase block mb-1">Before</span>
                             <p className="text-[11px] text-ink-muted italic leading-relaxed">{ex.before}</p>
                           </div>
-                          <div className="p-2.5 rounded bg-white border border-teal-200">
+                          <div className="p-3 rounded bg-white border border-teal-200 shadow-2xs">
                             <span className="text-[9px] font-bold text-teal-success uppercase block mb-1">After</span>
                             <p className="text-[11px] text-ink-navy font-semibold leading-relaxed">{ex.after}</p>
                           </div>
@@ -371,29 +426,31 @@ export const AnalyzerPage: React.FC = () => {
               )}
 
               {/* Improved Ready-to-Use Draft */}
-              <div className="bg-white border-2 border-cobalt rounded-panel p-6 shadow-panel space-y-4">
+              <div className="bg-white border-2 border-cobalt rounded-panel p-6 shadow-panel space-y-4 card-tactile">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-chartreuse text-ink-navy uppercase">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-chartreuse text-ink-navy uppercase shadow-2xs">
                       Recommended Rewrite
                     </span>
                     <h4 className="font-bold text-sm text-ink-navy">Polished Ready Draft</h4>
                   </div>
 
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={handleApplyImprovedDraft}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cobalt hover:bg-cobalt-hover text-white text-xs font-bold transition-all shadow-sm"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-cobalt hover:bg-cobalt-hover text-white text-xs font-bold transition-all shadow-cobalt-glow cursor-pointer"
                   >
-                    {appliedImproved ? <Check className="w-3.5 h-3.5" /> : <Edit2 className="w-3.5 h-3.5" />}
-                    <span>{appliedImproved ? 'Applied to Editor!' : 'Adopt in Editor'}</span>
-                  </button>
+                    {appliedImproved ? <CheckCheck className="w-3.5 h-3.5" /> : <Edit2 className="w-3.5 h-3.5" />}
+                    <span>{appliedImproved ? 'Adopted in Editor!' : 'Adopt in Editor'}</span>
+                  </motion.button>
                 </div>
 
-                <div className="p-4 bg-surface-subtle border border-stone-border rounded-lg text-xs text-ink-navy leading-relaxed font-sans whitespace-pre-wrap">
+                <div className="p-4 bg-surface-warm border border-stone-border rounded-lg text-xs text-ink-navy leading-relaxed font-sans whitespace-pre-wrap">
                   {analysisResult.improvedDraft}
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
       </div>

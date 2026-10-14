@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   FolderOpen,
   Search,
@@ -15,7 +16,8 @@ import {
   Archive,
   Edit,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  ArrowRight
 } from 'lucide-react';
 import { storage } from '../../services/storage';
 import { ContentItem, Platform, ContentStatus, ContentFormat } from '../../types';
@@ -74,17 +76,17 @@ export const ContentLibraryPage: React.FC = () => {
   const getStatusBadge = (status: ContentStatus) => {
     switch (status) {
       case 'published':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-success border border-teal-200 uppercase">Published</span>;
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-subtle text-teal-success border border-teal-200 uppercase">Published</span>;
       case 'scheduled':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cobalt-light text-cobalt border border-cobalt-muted uppercase">Scheduled</span>;
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cobalt-light text-cobalt border border-cobalt/20 uppercase">Scheduled</span>;
       case 'approved':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-chartreuse/50 text-ink-navy border border-ink-navy/10 uppercase">Approved</span>;
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-chartreuse text-ink-navy border border-ink-navy/15 uppercase">Approved</span>;
       case 'in_review':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-warning border border-amber-200 uppercase">In Review</span>;
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-subtle text-amber-warning border border-amber-200 uppercase">In Review</span>;
       case 'archived':
         return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-stone-hover text-ink-muted uppercase">Archived</span>;
       default:
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-surface-subtle text-ink-muted border border-stone-border uppercase">Draft</span>;
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-surface-warm text-ink-muted border border-stone-border uppercase">Draft</span>;
     }
   };
 
@@ -102,18 +104,18 @@ export const ContentLibraryPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Link
             to="/app/studio"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-cobalt hover:bg-cobalt-hover text-white font-bold text-xs shadow-soft transition-all"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-cobalt hover:bg-cobalt-hover text-white font-bold text-xs shadow-cobalt-glow transition-all"
           >
             <Plus className="w-4 h-4" /> Create New Asset
           </Link>
-        </div>
+        </motion.div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-panel border border-stone-border shadow-soft flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-white p-4 rounded-panel border border-stone-border shadow-soft flex flex-wrap items-center justify-between gap-3 card-tactile">
         {/* Search */}
         <div className="flex-1 min-w-[200px] relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-ink-faint" />
@@ -122,7 +124,7 @@ export const ContentLibraryPage: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by title, hook, or caption..."
-            className="w-full pl-9 pr-3 py-1.5 border border-stone-border rounded-lg text-xs"
+            className="w-full pl-9 pr-3 py-1.5 border border-stone-border rounded-lg text-xs font-medium focus:outline-cobalt"
           />
         </div>
 
@@ -131,7 +133,7 @@ export const ContentLibraryPage: React.FC = () => {
           <select
             value={platformFilter}
             onChange={(e) => setPlatformFilter(e.target.value)}
-            className="px-2.5 py-1.5 border border-stone-border rounded-lg text-xs bg-white text-ink-navy"
+            className="px-2.5 py-1.5 border border-stone-border rounded-lg text-xs bg-white text-ink-navy font-medium shadow-2xs"
           >
             <option value="all">All Networks</option>
             <option value="instagram">Instagram</option>
@@ -144,7 +146,7 @@ export const ContentLibraryPage: React.FC = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-2.5 py-1.5 border border-stone-border rounded-lg text-xs bg-white text-ink-navy"
+            className="px-2.5 py-1.5 border border-stone-border rounded-lg text-xs bg-white text-ink-navy font-medium shadow-2xs"
           >
             <option value="all">All Statuses</option>
             <option value="idea">Idea</option>
@@ -159,7 +161,7 @@ export const ContentLibraryPage: React.FC = () => {
           <select
             value={formatFilter}
             onChange={(e) => setFormatFilter(e.target.value)}
-            className="px-2.5 py-1.5 border border-stone-border rounded-lg text-xs bg-white text-ink-navy"
+            className="px-2.5 py-1.5 border border-stone-border rounded-lg text-xs bg-white text-ink-navy font-medium shadow-2xs"
           >
             <option value="all">All Formats</option>
             <option value="feed_post">Feed Post</option>
@@ -169,17 +171,17 @@ export const ContentLibraryPage: React.FC = () => {
           </select>
 
           {/* View toggle */}
-          <div className="flex border border-stone-border rounded-lg overflow-hidden ml-1">
+          <div className="flex border border-stone-border rounded-lg overflow-hidden ml-1 shadow-2xs">
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-1.5 ${viewMode === 'grid' ? 'bg-ink-navy text-white' : 'bg-white text-ink-muted'}`}
+              className={`p-1.5 cursor-pointer transition-colors ${viewMode === 'grid' ? 'bg-ink-navy text-white' : 'bg-white text-ink-muted hover:text-ink-navy'}`}
               aria-label="Grid view"
             >
               <LayoutGrid className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-1.5 ${viewMode === 'list' ? 'bg-ink-navy text-white' : 'bg-white text-ink-muted'}`}
+              className={`p-1.5 cursor-pointer transition-colors ${viewMode === 'list' ? 'bg-ink-navy text-white' : 'bg-white text-ink-muted hover:text-ink-navy'}`}
               aria-label="List view"
             >
               <ListIcon className="w-3.5 h-3.5" />
@@ -190,20 +192,21 @@ export const ContentLibraryPage: React.FC = () => {
 
       {/* Grid or List Display */}
       {filteredItems.length === 0 ? (
-        <div className="bg-white border-2 border-dashed border-stone-border rounded-panel p-12 text-center text-xs text-ink-muted">
+        <div className="bg-white border-2 border-dashed border-stone-border rounded-panel p-12 text-center text-xs text-ink-muted card-tactile">
           No content matches your filters. Adjust your search or create a new post in AI Studio.
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredItems.map((item) => (
-            <div
+            <motion.div
               key={item.id}
-              className="bg-white border border-stone-border rounded-panel p-5 shadow-soft hover:shadow-panel hover:border-cobalt transition-all flex flex-col justify-between space-y-4"
+              whileHover={{ y: -4, transition: { type: 'spring', stiffness: 350, damping: 25 } }}
+              className="bg-white border border-stone-border rounded-panel p-5 shadow-soft hover:shadow-card-hover hover:border-cobalt transition-all flex flex-col justify-between space-y-4 card-tactile"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-surface-subtle border border-stone-border text-ink-navy">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-surface-warm border border-stone-border text-ink-navy">
                       {item.platform}
                     </span>
                     <span className="text-[10px] text-ink-faint uppercase font-medium">
@@ -217,7 +220,7 @@ export const ContentLibraryPage: React.FC = () => {
                   {item.title}
                 </h3>
 
-                <p className="text-xs text-ink-muted line-clamp-3 leading-relaxed">
+                <p className="text-xs text-ink-muted line-clamp-3 leading-relaxed bg-surface-warm/60 p-2.5 rounded-lg border border-stone-border">
                   {item.hook || item.bodyCaption}
                 </p>
 
@@ -251,33 +254,33 @@ export const ContentLibraryPage: React.FC = () => {
                   </Link>
                   <button
                     onClick={() => handleDuplicate(item)}
-                    className="p-1.5 hover:text-ink-navy hover:bg-stone-hover rounded transition-colors"
+                    className="p-1.5 hover:text-ink-navy hover:bg-stone-hover rounded transition-colors cursor-pointer"
                     title="Duplicate"
                   >
                     <Copy className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => handleArchive(item)}
-                    className="p-1.5 hover:text-amber-warning hover:bg-stone-hover rounded transition-colors"
+                    className="p-1.5 hover:text-amber-warning hover:bg-stone-hover rounded transition-colors cursor-pointer"
                     title="Archive"
                   >
                     <Archive className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => handleDelete(item.id)}
-                    className="p-1.5 hover:text-red-error hover:bg-stone-hover rounded transition-colors"
+                    className="p-1.5 hover:text-red-error hover:bg-stone-hover rounded transition-colors cursor-pointer"
                     title="Delete"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       ) : (
         /* List Mode Table */
-        <div className="bg-white border border-stone-border rounded-panel shadow-soft overflow-hidden">
+        <div className="bg-white border border-stone-border rounded-panel shadow-soft overflow-hidden card-tactile">
           <table className="w-full text-left text-xs">
             <thead className="bg-surface-subtle border-b border-stone-border text-ink-faint uppercase font-mono text-[10px]">
               <tr>
@@ -291,7 +294,7 @@ export const ContentLibraryPage: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-stone-divider">
               {filteredItems.map((item) => (
-                <tr key={item.id} className="hover:bg-surface-subtle transition-colors">
+                <tr key={item.id} className="hover:bg-surface-warm transition-colors">
                   <td className="px-4 py-3 font-semibold text-ink-navy max-w-xs truncate">
                     {item.title}
                   </td>
@@ -306,7 +309,7 @@ export const ContentLibraryPage: React.FC = () => {
                   </td>
                   <td className="px-4 py-3">
                     {item.readinessScore ? (
-                      <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-teal-50 text-teal-success border border-teal-200">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-teal-subtle text-teal-success border border-teal-200">
                         {item.readinessScore}/100
                       </span>
                     ) : (
@@ -322,13 +325,13 @@ export const ContentLibraryPage: React.FC = () => {
                     </Link>
                     <button
                       onClick={() => handleDuplicate(item)}
-                      className="text-ink-muted hover:text-ink-navy"
+                      className="text-ink-muted hover:text-ink-navy cursor-pointer"
                     >
                       Copy
                     </button>
                     <button
                       onClick={() => handleDelete(item.id)}
-                      className="text-red-error hover:underline"
+                      className="text-red-error hover:underline cursor-pointer"
                     >
                       Delete
                     </button>

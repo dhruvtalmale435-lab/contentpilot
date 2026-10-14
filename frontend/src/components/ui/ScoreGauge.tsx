@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 
 interface ScoreGaugeProps {
   score: number;
@@ -27,7 +28,7 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
   const svgSize = (radius + strokeWidth) * 2;
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3 select-none">
       <div className="relative inline-flex items-center justify-center">
         <svg
           width={svgSize}
@@ -43,31 +44,38 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
             strokeWidth={strokeWidth}
             fill="transparent"
           />
-          {/* Foreground progress circle */}
-          <circle
+          {/* Foreground progress circle with Motion */}
+          <motion.circle
             cx={svgSize / 2}
             cy={svgSize / 2}
             r={radius}
             stroke={style.stroke}
             strokeWidth={strokeWidth}
             strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
+            initial={{ strokeDashoffset: circumference }}
+            animate={{ strokeDashoffset }}
+            transition={{ duration: 0.75, ease: 'easeOut' }}
             strokeLinecap="round"
             fill="transparent"
-            className="transition-all duration-700 ease-out"
           />
         </svg>
-        <span className={`absolute font-bold text-ink-navy ${size === 'lg' ? 'text-2xl' : (size === 'md' ? 'text-lg' : 'text-xs')}`}>
+        <motion.span
+          key={score}
+          initial={{ scale: 0.85, opacity: 0.8 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.25 }}
+          className={`absolute font-extrabold text-ink-navy font-mono ${size === 'lg' ? 'text-2xl' : (size === 'md' ? 'text-lg' : 'text-xs')}`}
+        >
           {score}
-        </span>
+        </motion.span>
       </div>
 
       {showLabel && (
         <div>
-          <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${style.text}`} style={{ backgroundColor: style.bg }}>
+          <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold shadow-2xs ${style.text}`} style={{ backgroundColor: style.bg }}>
             {style.label}
           </span>
-          <p className="text-[11px] text-ink-faint mt-0.5">Readiness Score</p>
+          <p className="text-[11px] text-ink-faint mt-0.5 font-medium">Readiness Score</p>
         </div>
       )}
     </div>

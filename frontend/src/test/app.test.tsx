@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import React from 'react';
 import { ScoreGauge } from '../components/ui/ScoreGauge';
 import { SocialPreviewCard } from '../components/previews/SocialPreviewCard';
@@ -9,8 +10,8 @@ import { storage } from '../services/storage';
 describe('ContentPilot AI Core Component Tests', () => {
   it('renders ScoreGauge with score and label', () => {
     render(<ScoreGauge score={88} size="md" showLabel={true} />);
-    expect(screen.getByText('88')).toBeInTheDocument();
-    expect(screen.getByText('Ready to Publish')).toBeInTheDocument();
+    expect(screen.getByText('88')).toBeDefined();
+    expect(screen.getByText('Ready to Publish')).toBeDefined();
   });
 
   it('renders SocialPreviewCard for LinkedIn', () => {
@@ -23,8 +24,8 @@ describe('ContentPilot AI Core Component Tests', () => {
         hashtags={['#DirectTrade', '#EthicalCoffee']}
       />
     );
-    expect(screen.getByText('Elena Vance')).toBeInTheDocument();
-    expect(screen.getByText(/Direct trade isn't charity/i)).toBeInTheDocument();
+    expect(screen.getByText('Elena Vance')).toBeDefined();
+    expect(screen.getByText(/Direct trade isn't charity/i)).toBeDefined();
   });
 
   it('renders CarouselPreview with slide progression', () => {
@@ -33,8 +34,8 @@ describe('ContentPilot AI Core Component Tests', () => {
       { slide: 'Slide 2', headline: 'Check Roast Date', subtext: 'Always look for stamped date.' }
     ];
     render(<CarouselPreview slides={slides} brandName="Roast & Co." />);
-    expect(screen.getByText('The 14-Day Coffee Lie')).toBeInTheDocument();
-    expect(screen.getByText('Slide 1 of 2')).toBeInTheDocument();
+    expect(screen.getByText('The 14-Day Coffee Lie')).toBeDefined();
+    expect(screen.getByText('Slide 1 of 2')).toBeDefined();
   });
 
   it('storage service initializes with Roast & Co. seed workspace', () => {
